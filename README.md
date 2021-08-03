@@ -5,8 +5,14 @@ However, these temperature time series lack homogeneity due to changes in instru
 
 Requirements: A good knowledge of and interest in Bayesian inference, MCMC techniques, and time series as well as good programming skills and knowledge of R and JAGS are essential.
 
+## Data
+Can be downloaded directly from CliFlo (https://cliflo.niwa.co.nz/).  You can also use the clifro R package.  
+
+## Model
+We can think of the model as Data = Signal + Noise.  We will use a blocked Gibbs sampler to sample the signal parameters given the noise parameters, and the noise parameters given the signal parameters.   
+
 ## Noise model
-Corrected likelihood with Bernstein-Dirichlet prior (Kirch et al. 2019).
+Either the Whittle likelihood with Bernstein-Dirichlet prior (Choudhuri et al. 2004) or the corrected likelihood with Bernstein-Dirichlet prior (Kirch et al. 2019).  
 
 ## Signal model
 Linear regression with time as the explanatory variable, hierarchical slope for annual temperature at the seven stations, different y-intercepts to account for (known) level-shifts.
@@ -19,5 +25,5 @@ Implemented a 2-station (Auckland and Wellington) version of the model, with sam
 - Scrape most recent data from NIWA
 - Implement hierarchical version for linear slope coefficient
 - Explore P-spline or B-spline noise model instead? Perhaps simplify to original Bernstein-Dirichlet prior with Whittle likelihood.
-- Figure out how to impute missing data. Originally used an ad hoc fill-in for the one missing Wellington data point.
+- Figure out how to impute missing data. Originally used an ad hoc fill-in for the one missing Wellington data point. Implemented in beyondWhittle package.
 
