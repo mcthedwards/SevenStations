@@ -1,5 +1,5 @@
 
-gibbs_run = function(data,
+gibbs_psd = function(data,
                      Ntotal,
                      burnin,
                      thin = 1,

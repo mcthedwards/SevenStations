@@ -148,6 +148,7 @@ gibbs_noise = function(omega, FZ, k, V, W, tau, L,
   return(list(k = k,
               V = V,
               W = W,
-              tau = tau))
+              tau = tau,
+              q = q))
   
 }

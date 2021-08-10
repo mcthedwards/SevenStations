@@ -1,5 +1,6 @@
 library(Rcpp)
 library(compiler)
+library(MASS)
 
 # C++ function for generating  p from v in Stick Breaking DP representation
 cppFunction("NumericVector pFromV(NumericVector v) {
@@ -219,4 +220,16 @@ plot.psd = function(x, legend.loc = "topright", ylog = TRUE, ...) {  # Plot meth
                        col = c("grey", "black", "blue"), lwd = c(1, 2, 2), lty = c(1, 1, 2))  
     }
   }
+}
+
+plot.temp = function(x, legend.loc = "topright", ...) {  # Plot method for "temp" class
+  
+  graphics::plot.default(x$times, x$data, type = "l", col = "grey",
+                 xlab = "Year", ylab = "Annual Average Temperature", ...)
+  graphics::lines(x$times, x$recon.median, lwd = 2)
+  graphics::lines(x$times, x$recon.p05, lwd = 2, lty = 2, col = 4)
+  graphics::lines(x$times, x$recon.p95, lwd = 2,  lty = 2, col = 4)
+  graphics::legend(legend.loc, legend = c("data", "posterior median", "90% credible region"), 
+                       col = c("grey", "black", "blue"), lwd = c(1, 2, 2), lty = c(1, 1, 2))  
+
 }
