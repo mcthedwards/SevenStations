@@ -12,7 +12,7 @@ Can be downloaded directly from CliFlo (https://cliflo.niwa.co.nz/).  You can al
 We can think of the model as Data = Signal + Noise.  We will use a blocked Gibbs sampler to sample the signal parameters given the noise parameters, and the noise parameters given the signal parameters.   
 
 ## Noise model
-Either the Whittle likelihood with Bernstein-Dirichlet prior (Choudhuri et al. 2004) or the corrected likelihood with Bernstein-Dirichlet prior (Kirch et al. 2019).  
+Whittle likelihood with Bernstein-Dirichlet prior (Choudhuri et al. 2004).  Could also consider the corrected likelihood with Bernstein-Dirichlet prior (Kirch et al. 2019), the B-spline prior (Edwards et al. 2019), or P-spline prior (Maturana-Russel and Meyer 2021).
 
 ## Signal model
 Linear regression with time as the explanatory variable, hierarchical slope for annual temperature at the seven stations, different y-intercepts to account for (known) level-shifts.
@@ -20,10 +20,18 @@ Linear regression with time as the explanatory variable, hierarchical slope for 
 ## Progress:
 Implemented a 2-station (Auckland and Wellington) version of the model, with same slope, and different intercepts for each (known) weather station change-point/level shift.
 
+## Code:
+- We require the following R libraries: Rcpp, compiler, MASS.
+- gibbs_functions.R: All the functions used in the background, e.g., FFT, log likelihood, log posterior, stick-breaking, plot methods, etc.  
+- gibbs_noise.R: The blocked noise sampler.  Outputs an iteration of noise parameters.
+- gibbs_sampler_noise_only.R: The MCMC sampler if we are only interested in estimating the PSD of a noise time series.  Function is gibbs_psd().
+- gibbs_signal.R: The blocked signal sampler.  It outputs an iteration of regression coefficients.  Note: May want to implement Cholesky version of this.
+- gibbs_sampler_with_signal.R: The blocked Gibbs MCMC sampler that iterates between noise parameters and signal parameters.  Function is gibbs_temperature().  This is the code we need to change to implement a hierarchical version of the model.
+- gibbs_example.R: Two examples. First one is a noise-only run on simulated AR data. Second is a blocked sampler where we have Auckland annual average temperature data from 1910 onwards.  We want to estimate a linear slope.  There are four levels due to the station changing over time.  This is represented by using four different intercepts in the design matrix.  The noise parameters are also estimated and we can construct the PSD if we want, although we are primarily interested in the signal.
+
 ## To do:
-- Find most recent version of the code
-- Scrape most recent data from NIWA
+- Tidy up old code - DONE
+- Scrape most recent data from NIWA - DONE
 - Implement hierarchical version for linear slope coefficient
-- Explore P-spline or B-spline noise model instead? Perhaps simplify to original Bernstein-Dirichlet prior with Whittle likelihood.
-- Figure out how to impute missing data. Originally used an ad hoc fill-in for the one missing Wellington data point. Implemented in beyondWhittle package.
+- Impute missing data. Originally used an ad hoc fill-in for the one missing Wellington data point. Implemented in beyondWhittle R package for the noise component. 
 

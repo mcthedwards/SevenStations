@@ -20,7 +20,6 @@ gibbs_signal = function(yf, Xf, q, tau) {
   
   return(beta)
   
-  
 }
 
 
