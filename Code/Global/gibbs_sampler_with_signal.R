@@ -11,9 +11,10 @@ gibbs_temperature = function(data,
                              k.theta = 0.01,
                              tau.alpha = 0.001,
                              tau.beta = 0.001,
-                             beta.v0 = 1,  
                              mu.0 = 0,
                              sigma2.0 = 1,
+                             a0 = 0.1,  # Vague enough?
+                             b0 = 0.1,  # Vague enough?
                              kmax = 100,
                              L = max(20, length(data) ^ (1 / 3)),
                              printerval = 1000) {
@@ -79,6 +80,7 @@ gibbs_temperature = function(data,
   alpha <- matrix(NA, nrow = Ntotal, ncol = cpn)
   beta <- rep(NA, Ntotal)
   beta.G <- rep(NA, Ntotal)
+  beta.v0 <- rep(NA, Ntotal)
   
   # Starting values
   tau[1] <- stats::var(data) / (2 * pi)
@@ -92,6 +94,8 @@ gibbs_temperature = function(data,
   lm.fit = lm(data ~ cbind(Xt, times) - 1)
   alpha[1, ] = as.numeric(coef(lm.fit))[1:cpn]
   beta[1] = beta.G[1] = as.numeric(coef(lm.fit))[cpn + 1]
+  
+  beta.v0[1] = 1 / rgamma(1, a0, b0)  # Initial value from hyperprior
   
   # Metropolis proposal parameters for V, U, W, Z.
   eps <- seq(1, L + 1) / (seq(1, L + 1) + 2 * sqrt(n))  
@@ -145,13 +149,15 @@ gibbs_temperature = function(data,
     
     # (b). Slope (assumes N(beta.G, beta.v0) prior)
     beta[i] <- gibbs_signal_beta(yf, Xf, times.f, q, tau[i], alpha[i, ], 
-                                 beta.G[i - 1], beta.v0)
+                                 beta.G[i - 1], beta.v0[i - 1])
     
     #####
     # 3. Global parameters block
     #####
     
-    beta.G[i] = gibbs_global(beta[i], beta.v0, mu.0, sigma2.0)
+    beta.G[i] = gibbs_global_slope(beta[i], beta.v0[i - 1], mu.0, sigma2.0)
+    beta.v0[i] = gibbs_global_variance(beta[i], beta.G[i], a0, b0)
+    
     # To do: tweak this such that beta.G takes account of all stations
     # I.e., beta[i] should be a vector of length 7 rather than 1 here
     # And it should be outside the local loops
@@ -166,6 +172,7 @@ gibbs_temperature = function(data,
   W <- W[, keep]
   beta <- beta[keep]
   beta.G <- beta.G[keep]
+  beta.v0 <- beta.v0[keep]
   
   fpsd.sample <- matrix(NA, nrow = length(omega), ncol = length(keep))
   recon <- matrix(NA, nrow = n, ncol = length(keep))
@@ -209,6 +216,7 @@ gibbs_temperature = function(data,
                 alpha = alpha,
                 beta = beta,
                 beta.G = beta.G,
+                beta.v0 = beta.v0,
                 data = data + data.mean,
                 times = times + times.mean)
   
