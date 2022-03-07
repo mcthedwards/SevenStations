@@ -23,9 +23,11 @@ data$temp[is.na(data$temp)] = 12
 
 data[is.na(data$temp),]
 
+#try without Lincoln
+six_stations_data = data[data$location != "Lincoln",]
 
 # Run MCMC
-mcmc = gibbs_temperature_overall(data, 20000, 10000)
+mcmc = gibbs_temperature_overall(six_stations_data, 20000, 10000, nloc = 6)
 
 # Plot signal estimate
 # plot(mcmc, legend.loc = NA)
@@ -36,9 +38,9 @@ plot.ts(mcmc$alphas[[1]])
 
 mean(mcmc$beta.G)
 mean(mcmc$beta.G)*100
-sapply(1:7, function (x) mean(mcmc$betas[[x]]))*100
+sapply(1:6, function (x) mean(mcmc$betas[[x]]))*100
 hist(mcmc$beta.G)
-
+mean(mcmc$beta.G)
 
 #global slope samples still distributed around zero. Need to fix. 
 
