@@ -11,12 +11,13 @@ gibbs_temperature_overall = function(data,
                              tau.alpha = 0.001,
                              tau.beta = 0.001,
                              mu.0 = 0,
-                             sigma2.0 = 0.1,
+                             sigma2.0 = 0.1 , #1e-6,
                              a0 = 0.1,  # Vague enough?
                              b0 = 0.1,  # Vague enough?
                              kmax = 100,
                              L = 20,        #L = max(20, length(data) ^ (1 / 3)),   have just changed to 20 as lengths differ. <20 anyway
-                             printerval = 1000
+                             printerval = 1000, 
+                             nloc = 7
                              #,
                              #mu_0 = 0.01,
                              #sigma_0 = 0.001
@@ -36,18 +37,18 @@ gibbs_temperature_overall = function(data,
   
   # Open objects for storage
   # need noise parameters for each location. Each row is a diff location.
-  tau <- matrix(NA, nrow = 7, ncol = Ntotal)
-  k <- matrix(NA, nrow = 7, ncol = Ntotal)
+  tau <- matrix(NA, nrow = nloc, ncol = Ntotal)
+  k <- matrix(NA, nrow = nloc, ncol = Ntotal)
   
   # store v and W as list of matrices
-  V <- lapply(1:7, function(x) matrix(NA, nrow = L, ncol = Ntotal))
-  W <- lapply(1:7, function(x) matrix(NA, nrow = L + 1, ncol = Ntotal))
+  V <- lapply(1:nloc, function(x) matrix(NA, nrow = L, ncol = Ntotal))
+  W <- lapply(1:nloc, function(x) matrix(NA, nrow = L + 1, ncol = Ntotal))
   
   # store beta in list (one beta for each location). Each component of the list will be a vector.
-  betas <- vector(mode = "list", length = 7) 
+  betas <- vector(mode = "list", length = nloc) 
   
   #intercepts for each location. each component of the list will be a matrix.
-  alphas <- vector(mode = "list", length = 7)
+  alphas <- vector(mode = "list", length = nloc)
   
   #global slope vector
   beta.G <- rep(NA, Ntotal) 
@@ -59,32 +60,32 @@ gibbs_temperature_overall = function(data,
   beta.v0[1] = 1 / rgamma(1, a0, b0)  # Initial value from hyperprior
   
   # matrices to store Xt_i, Xf_i and yf_i
-  Xts <- vector(mode = "list", length = 7)
-  Xfs <- vector(mode = "list", length = 7)
-  yfs <- vector(mode = "list", length = 7)
+  Xts <- vector(mode = "list", length = nloc)
+  Xfs <- vector(mode = "list", length = nloc)
+  yfs <- vector(mode = "list", length = nloc)
   
   # lists for proposal parameters
-  eps_list <- vector(mode = "list", length = 7) 
-  omega_list <- vector(mode = "list", length = 7)  
-  lambda_list <- vector(mode = "list", length = 7) 
+  eps_list <- vector(mode = "list", length = nloc) 
+  omega_list <- vector(mode = "list", length = nloc)  
+  lambda_list <- vector(mode = "list", length = nloc) 
   
   
   #beta densities. This will become a list of lists as beta densities for each location will be a list itself
-  dbs_list <- vector(mode = "list", length = 7) 
+  dbs_list <- vector(mode = "list", length = nloc) 
   
   #split data into separate dfs for each region
   data_split = split(data, data$location, drop = T)
   
   #vector for location means which we use at the end to compute the psds 
-  location_means <- rep(NA, 7)
+  location_means <- rep(NA, nloc)
   
   #times.f for each location
-  times.f_list <- vector(mode = "list", length = 7) 
+  times.f_list <- vector(mode = "list", length = nloc) 
   
   
   #location loop to pre-process, set intitial values etc.
   
-  for (i in 1:7) {
+  for (i in 1:nloc) {
     
     n = nrow(data_split[[i]])
     
@@ -221,7 +222,7 @@ gibbs_temperature_overall = function(data,
     if (i %% printerval == 0) print(paste0("Iteration ", i, " of ", Ntotal))
       
       
-    for (j in 1:7) {
+    for (j in 1:nloc) {
       
         
       #####
@@ -289,10 +290,10 @@ gibbs_temperature_overall = function(data,
   
   
   #now loop over seven locations again for psds, recons
-  psd_list <- vector(mode = "list", length = 7)
-  recon_list <- vector(mode = "list", length = 7)
+  psd_list <- vector(mode = "list", length = nloc)
+  recon_list <- vector(mode = "list", length = nloc)
   
-  for (i in 1:7){
+  for (i in 1:nloc){
   
     #each location has different omega
     fpsd.sample <- matrix(NA, nrow = length(omega_list[[i]]), ncol = length(keep))
