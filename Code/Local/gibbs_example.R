@@ -25,6 +25,10 @@ plot(mcmc)
 # Read in Auckland temperature data
 data = read.csv("annual_temp_2016.csv")
 data = data[data$location=="Auckland", ]
+# data = data[data$location=="Wellington", ]
+# data$temp[6] = 13  # "Impute" missing value for Wellington
+# data = data[data$location=="Lincoln", ]
+# data$temp[is.na(data$temp)] = 12  # "Impute" NAs for Lincoln
 
 times = data$year
 temp = data$temp
@@ -44,4 +48,7 @@ mcmc = gibbs_temperature(temp, times, cp,
 # Plot signal estimate
 plot(mcmc, legend.loc = NA)
 
-
+# Posterior for slope
+plot.ts(mcmc$beta[, ncol(mcmc$beta)])
+quantile(mcmc$beta[, ncol(mcmc$beta)], probs = c(0.05, 0.5, 0.95)) 
+quantile(mcmc$beta[, ncol(mcmc$beta)], probs = c(0.05, 0.5, 0.95)) * 100

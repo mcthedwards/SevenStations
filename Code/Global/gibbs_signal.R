@@ -36,9 +36,9 @@ gibbs_signal_beta = function(yf, Xf, times.f, q, tau, alpha,
   
   variances <- tau * q * 2 * pi  # 2 * pi * f, i.e., diagonal variance matrix
   invVar = 1 / variances
-  inv.sigma2 = sum(times.f ^ 2 * invVar) + 1 / beta.v0
+  inv.sigma2 = sum(times.f ^ 2 * invVar) - 1 / (2 * beta.v0)
   sigma2 = 1 / inv.sigma2
-  mu = (sum(times.f * (yf - Xf %*% alpha) * invVar) + beta.G) * sigma2
+  mu = (sum(times.f * (yf - Xf %*% alpha) * invVar) - beta.G / (2 * beta.v0)) * sigma2
   
   # Dinv = diag(invVar)
   # a = t(times.f) %*% Dinv %*% times.f + 1 / beta.v0

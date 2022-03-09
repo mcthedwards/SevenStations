@@ -51,6 +51,11 @@ gibbs_temperature = function(data,
   # changepoints = c(1, changepoints) 
   cpn = length(changepoints)
   
+  #####
+  times.mean = mean(times)
+  times = times - mean(times)  # Mean center times (numerical stability)
+  #####
+  
   # Time domain design matrix
   Xt = matrix(0, nrow = length(times), ncol = cpn + 1)
   for (j in 1:(cpn-1)) {
@@ -59,6 +64,14 @@ gibbs_temperature = function(data,
   Xt[changepoints[cpn]:length(times), cpn] = 1  # Populating last segment with 1s
   Xt[, ncol(Xt)] = times  # Attach slope
   
+  #####
+  # Testing: Mean center all explanatory variables
+  # Xt.means = apply(Xt, 2, mean)
+  # for (j in 1:ncol(Xt)) {
+  #   Xt[, j] = Xt[, j] - Xt.means[j]
+  # }
+  #####
+  
   # Frequency domain design matrix
   Xf = matrix(NA, nrow = length(times), ncol = cpn + 1)
   for (j in 1:(cpn + 1)) {
@@ -66,6 +79,8 @@ gibbs_temperature = function(data,
   }
   
   # Original data in frequency domain
+  data.mean = mean(data)
+  data = data - data.mean
   yf = fast_ft(data) 
   
   omega <- 2 * (1:(n / 2 + 1) - 1) / n  # Frequencies on unit interval
@@ -88,7 +103,9 @@ gibbs_temperature = function(data,
   
   # Use least squares estimate as starting point for signal
   lm.fit = lm(data ~ Xt - 1)
-  beta[1, ] = as.numeric(coef(lm.fit))
+  coef.lm.fit = as.numeric(coef(lm.fit))
+  coef.lm.fit[is.na(coef.lm.fit)] = 0
+  beta[1, ] = coef.lm.fit
   
   # Metropolis proposal parameters for V, U, W, Z.
   eps <- seq(1, L + 1) / (seq(1, L + 1) + 2 * sqrt(n))  
@@ -157,7 +174,7 @@ gibbs_temperature = function(data,
                                                   W[, isample], 
                                                   k[isample], 
                                                   db.list)$psd
-    recon[, isample] <- as.vector(Xt %*% beta[isample, ]) 
+    recon[, isample] <- as.vector(Xt %*% beta[isample, ]) + data.mean
   }
   
   # Compute point estimates and 90% Pointwise CIs
@@ -185,8 +202,8 @@ gibbs_temperature = function(data,
                 V = V,
                 W = W, 
                 beta = beta,
-                data = data,
-                times = times)
+                data = data + data.mean,
+                times = times + times.mean)
   
   class(output) = "temp"  # Assign S3 class to object
   

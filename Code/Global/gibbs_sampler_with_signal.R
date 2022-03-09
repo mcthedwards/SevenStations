@@ -13,8 +13,8 @@ gibbs_temperature = function(data,
                              tau.beta = 0.001,
                              mu.0 = 0,
                              sigma2.0 = 1,
-                             a0 = 0.1,  # Vague enough?
-                             b0 = 0.1,  # Vague enough?
+                             a0 = 0.001,  # Vague enough?
+                             b0 = 0.001,  # Vague enough?
                              kmax = 100,
                              L = max(20, length(data) ^ (1 / 3)),
                              printerval = 1000) {
@@ -51,6 +51,14 @@ gibbs_temperature = function(data,
   }
   Xt[changepoints[cpn]:length(times), cpn] = 1  # Populating last segment with 1s
   # Note: Keep slope detached from design matrix
+  
+  #####
+  # Testing: Mean center all explanatory variables
+  # Xt.means = apply(Xt, 2, mean)
+  # for (j in 1:ncol(Xt)) {
+  #   Xt[, j] = Xt[, j] - Xt.means[j]
+  # }
+  #####
 
   # Frequency domain design matrix
   Xf = matrix(NA, nrow = length(times), ncol = cpn)
@@ -59,14 +67,16 @@ gibbs_temperature = function(data,
   }
   
   # Fourier transform time explanatory variable
+  # times.mean = 0
   times.mean = mean(times)
   times = times - mean(times)  # Mean center times (numerical stability)
-  times.f = fast_ft(times)  
+  times.f = fast_ft(times)
   
   # Original data in frequency domain
+  # data.mean = 0
   data.mean = mean(data)
   data = data - mean(data)  # Mean center
-  yf = fast_ft(data) 
+  yf = fast_ft(data)
   
   omega <- 2 * (1:(n / 2 + 1) - 1) / n  # Frequencies on unit interval
   lambda <- pi * omega  # Angular frequencies on [0, pi]
@@ -92,8 +102,10 @@ gibbs_temperature = function(data,
   
   # Use least squares estimate as starting point for signal
   lm.fit = lm(data ~ cbind(Xt, times) - 1)
-  alpha[1, ] = as.numeric(coef(lm.fit))[1:cpn]
-  beta[1] = beta.G[1] = as.numeric(coef(lm.fit))[cpn + 1]
+  lm.coef = as.numeric(coef(lm.fit))
+  lm.coef[is.na(lm.coef)] = 0
+  alpha[1, ] = lm.coef[1:cpn]
+  beta[1] = beta.G[1] = lm.coef[cpn + 1]
   
   beta.v0[1] = 1 / rgamma(1, a0, b0)  # Initial value from hyperprior
   
@@ -157,6 +169,7 @@ gibbs_temperature = function(data,
     
     beta.G[i] = gibbs_global_slope(beta[i], beta.v0[i - 1], mu.0, sigma2.0)
     beta.v0[i] = gibbs_global_variance(beta[i], beta.G[i], a0, b0)
+    # beta.v0[i] = 0.01
     
     # To do: tweak this such that beta.G takes account of all stations
     # I.e., beta[i] should be a vector of length 7 rather than 1 here

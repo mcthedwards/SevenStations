@@ -1,6 +1,6 @@
 source("gibbs_functions.R")
 source("gibbs_noise.R")
-source("gibbs_signal_global.R")
+source("gibbs_signal.R")
 source("gibbs_global.R")
 source("gibbs_combined.R")
 
@@ -34,13 +34,13 @@ mcmc = gibbs_temperature_overall(six_stations_data, 20000, 10000, nloc = 6)
 
 plot.ts(mcmc$beta.G)
 plot.ts(mcmc$betas[[1]])
-plot.ts(mcmc$alphas[[1]])
 
 mean(mcmc$beta.G)
 mean(mcmc$beta.G)*100
 sapply(1:6, function (x) mean(mcmc$betas[[x]]))*100
-hist(mcmc$beta.G)
-mean(mcmc$beta.G)
+
+sapply(1:6, function (x) quantile(mcmc$betas[[x]], probs = c(0.05, 0.5, 0.95)))*100
+quantile(mcmc$beta.G, probs = c(0.05, 0.5, 0.95)) * 100
 
 #global slope samples still distributed around zero. Need to fix. 
 
