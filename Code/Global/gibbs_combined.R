@@ -1,5 +1,3 @@
-
-
 gibbs_temperature_overall = function(data,
                              Ntotal,
                              burnin,
@@ -10,15 +8,18 @@ gibbs_temperature_overall = function(data,
                              k.theta = 0.01,
                              tau.alpha = 0.001,
                              tau.beta = 0.001,
-                             mu.0 = 0,
-                             sigma2.0 = 1e6,
-                             a0 = 0.1,  # Vague enough?
-                             b0 = 0.1,  # Vague enough?
+                             mu.0 = 0, #1
+                             sigma2.0 = 1e6 , #1e6 very vague
+                             a0 = 1e-3,  # Vague enough?
+                             b0 = 1e-3,  # Vague enough?
                              kmax = 100,
                              L = 20,        #L = max(20, length(data) ^ (1 / 3)),   have just changed to 20 as lengths differ. <20 anyway
                              printerval = 1000, 
-                             nloc = 7) {
-  
+                             nloc = 7
+                             #,
+                             #mu_0 = 0.01,
+                             #sigma_0 = 0.001
+                            ) {
   
   #####
   # Preamble
